@@ -154,9 +154,29 @@ Converting BeautifulSoup objects
 Creating Custom Converters
 ==========================
 
-If you have a special usecase that calls for a special conversion, you can
-always inherit from ``MarkdownConverter`` and override the method you want to
-change or add a function with the following pattern: `def convert_<TAG NAME>(self, el, text, convert_as_inline):`. The class will automatically run the corresponding tag content/element through it at conversion time. 
+When Markdownify processes a tag, it looks for the existence of a
+``convert_<TAGNAME>()`` method within its class and calls it if it exists.
+If an HTML tag is not converted (or not converted the way you want),
+you can subclass ``MarkdownConverter`` and add or override the conversion
+method for that tag.
+
+The method should have the following signature, where ``<TAG NAME>`` is
+the name of the tag you want to convert (e.g. ``convert_img``):
+
+.. code:: python
+
+    def convert_<TAG NAME>(self, el, text, convert_as_inline):
+        """
+        Do something with the element and return the Markdown
+
+        :param el: The BeautifulSoup element object
+        :param text: The already-converted content within the element
+        :param convert_as_inline: A Boolean indicating whether the element
+            should be converted as an inline element
+        """
+        return text
+
+For example,
 
 .. code:: python
 
@@ -169,7 +189,7 @@ change or add a function with the following pattern: `def convert_<TAG NAME>(sel
         def convert_img(self, el, text, convert_as_inline):
             return super().convert_img(el, text, convert_as_inline) + '\n\n'
 
-    # Create shorthand method for conversion
+    # Create a shorthand method for new conversion class
     def md(html, **options):
         return ImageBlockConverter(**options).convert(html)
 
